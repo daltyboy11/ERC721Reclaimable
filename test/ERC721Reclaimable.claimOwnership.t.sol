@@ -26,7 +26,10 @@ contract ERC721ReclaimableClaimOwnershipTest is ERC721ReclaimableBaseTest {
         nft.claimOwnership(0);
     }
 
-    function testTitleApprovedOperatorCanClaimOwnership(address titleApprovedOperator, address newOwner) public {
+    function testTitleApprovedOperatorCanClaimOwnership(
+        address titleApprovedOperator,
+        address newOwner
+    ) public {
         vm.assume(titleApprovedOperator != address(this) && titleApprovedOperator != address(0) && titleApprovedOperator != newOwner);
         vm.assume(newOwner != address(this) && newOwner != address(0));
         nft.titleApprove(titleApprovedOperator, 1);
@@ -37,7 +40,10 @@ contract ERC721ReclaimableClaimOwnershipTest is ERC721ReclaimableBaseTest {
         assertEq(nft.ownerOf(1), address(this));
     }
 
-    function testTitleAllApprovedOperatorCanClaimOwnership(address allTitleApprovedOperator, address newOwner) public {
+    function testTitleAllApprovedOperatorCanClaimOwnership(
+        address allTitleApprovedOperator,
+        address newOwner
+    ) public {
         vm.assume(allTitleApprovedOperator != address(this) && allTitleApprovedOperator != address(0) && allTitleApprovedOperator != newOwner);
         vm.assume(newOwner != address(this) && newOwner != address(0));
         nft.setTitleApprovalForAll(allTitleApprovedOperator, true);
