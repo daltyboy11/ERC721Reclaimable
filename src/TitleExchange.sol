@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.24;
 
 import {ERC721Reclaimable} from "./ERC721Reclaimable.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";

@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {ERC721Reclaimable} from "../src/ERC721Reclaimable.sol";
+import {IERC721Reclaimable} from "../src/interfaces/IERC721Reclaimable.sol";
 
-contract ERC721ReclaimableMintable is  ERC721Reclaimable {
+contract ERC721ReclaimableMintable is ERC721Reclaimable {
     constructor(
         string memory name,
         string memory symbol,
@@ -31,6 +33,10 @@ contract ERC721ReclaimableTest is Test, IERC721Errors {
         );
     }
 
+    /**
+     * titleOwnerOF
+     */
+
     function testTitleOwnerOfOwner() public view {
         assertEq(nft.titleOwnerOf(0), address(this));
     }
@@ -40,6 +46,9 @@ contract ERC721ReclaimableTest is Test, IERC721Errors {
         assertNotEq(nft.titleOwnerOf(0), notOwner);
     }
 
+    /**
+     * titleTransferFrom
+     */
     function testTitleTransferFromCallableByTitleOwner() public {
         nft.titleTransferFrom(address(this), address(0), 0);
     }
@@ -69,10 +78,13 @@ contract ERC721ReclaimableTest is Test, IERC721Errors {
 
     function testTitleTransferFromEmitsTitleTransferEvent() public {
         vm.expectEmit(true, true, true, true);
-        emit ERC721Reclaimable.TitleTransfer(address(this), address(5), 1);
+        emit IERC721Reclaimable.TitleTransfer(address(this), address(5), 1);
         nft.titleTransferFrom(address(this), address(5), 1);
     }
 
+    /**
+     * transferFrom
+     */
     function testTransferFromDoesNotChangeTitleOwnership() public {
         nft.transferFrom(address(this), address(4), 2);
         assertEq(nft.titleOwnerOf(2), address(this));
@@ -82,5 +94,29 @@ contract ERC721ReclaimableTest is Test, IERC721Errors {
         nft.transferFrom(address(this), address(3), 1);
         vm.expectRevert(abi.encodeWithSelector(ERC721InsufficientApproval.selector, 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 1));
         nft.transferFrom(address(3), address(this), 1);
+    }
+
+    /**
+     * claimOwnership
+     */
+    function testTitleOwnerCanClaimOwnership(address assetOwner) public {
+        vm.assume(assetOwner != address(this));
+        nft.transferFrom(address(this), assetOwner, 0);
+        assertEq(nft.ownerOf(0), assetOwner);
+        nft.claimOwnership(0);
+        assertEq(nft.ownerOf(0), address(this));
+    }
+
+    function testNonTitleOwnerCantClaimOwnership(address nonTitleOwner) public {
+        vm.assume(nonTitleOwner != address(this));
+        nft.transferFrom(address(this), nonTitleOwner, 0);
+        assertEq(nft.ownerOf(0), nonTitleOwner);
+        vm.prank(nonTitleOwner);
+        nft.claimOwnership(0);
+        assertEq(nft.ownerOf(0), address(this));
+    }
+
+    function testTitleOwnerIsAlsoAssetOwnerCanClaimOwnership() public {
+
     }
 }
