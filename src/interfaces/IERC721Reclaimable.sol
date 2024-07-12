@@ -17,6 +17,12 @@ interface IERC721Reclaimable {
      */
     event TitleApprovalForAll(address indexed titleOwner, address indexed titleOperator, bool approved);
 
+    /**
+     * @dev Emitted when titleOwner exercises their right to reclaim the asset
+     * @param titleOwner The title owner claiming ownership
+     * @param assetOwner The asset owner from which the asset was claimed
+     * @param tokenId The asset claimed
+     */
     event OwnershipClaimed(address indexed titleOwner, address indexed assetOwner, uint256 tokenId);
 
     /**
@@ -25,12 +31,23 @@ interface IERC721Reclaimable {
     function claimOwnership(uint256 tokenId) external;
 
     /**
-     * Transfer title. The exchange is responsible for enforcing applicable royalty fees.
+     * Transfer title.
+     * The title owner, title approved operator, and all title approved operator are authorized to execute a title transfer
+     * The exchange is responsible for enforcing applicable royalty fees.
      */
     function titleTransferFrom(address to, address from, uint256 tokenId) external;
 
+    /**
+     * Title owner of ae asset
+     */
     function titleOwnerOf(uint256 tokenId) external view returns (address);
 
+    /**
+     * As the title owner, delegate title management to another address
+     * 
+     * @param to address delegated to
+     * @param tokenId asset whose title is being delegated
+     */
     function titleApprove(address to, uint256 tokenId) external;
 
     function getTitleApproved(uint256 tokenId) external view returns (address);
