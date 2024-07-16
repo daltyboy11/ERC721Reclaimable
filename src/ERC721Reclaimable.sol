@@ -11,13 +11,21 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721Royalty {
     mapping(uint256 tokenId => address) private _tokenTitleApprovals;
     mapping(address titleOwner => mapping(address titleOperator => bool)) private _titleOperatorApprovals;
 
+    uint256 private immutable _titleTransferFee;
+
     constructor(
         string memory name,
         string memory symbol,
+        uint256 __titleTransferFee,
         address royaltyBeneficiary,
         uint96 royaltyBps
     ) ERC721(name, symbol) {
         _setDefaultRoyalty(royaltyBeneficiary, royaltyBps);
+        _titleTransferFee = __titleTransferFee;
+    }
+
+    function titleTransferFee() external override view returns (uint256) {
+        return _titleTransferFee;
     }
 
     function claimOwnership(uint256 tokenId) public override onlyTitleOwnerOrTitleOperator(tokenId) {
@@ -27,13 +35,24 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721Royalty {
         emit OwnershipClaimed(titleOwner, assetOwner, tokenId);
     }
 
-    function titleTransferFrom(address to, address from, uint256 tokenId) public override onlyTitleOwnerOrTitleOperator(tokenId) {
-        if (to != _titleOwners[tokenId]) revert TitleTransferFromInvalidTitleOwner(to, tokenId);
+    function titleTransferFrom(
+        address to,
+        address from,
+        uint256 tokenId
+    ) public override payable onlyTitleOwnerOrTitleOperator(tokenId) {
+        if (to != _titleOwners[tokenId]) revert TitleTransferFromInvalidTitleOwner(to, from, tokenId);
+        if (msg.value < _titleTransferFee) revert InsufficientTitleTransferFee(to, from, tokenId, msg.value);
 
         _titleOwners[tokenId] = from;
 
         // Clear approval
         delete _tokenTitleApprovals[tokenId];
+
+        (address receiver,) = this.royaltyInfo(tokenId, 0);
+        // Transfer the title transfer fee to the receiver
+        (bool success, ) = receiver.call{value: msg.value}("");
+        require(success, "Transfer failed");
+
         emit TitleTransfer(to, from, tokenId);
     }
 

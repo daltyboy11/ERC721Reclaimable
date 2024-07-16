@@ -25,6 +25,8 @@ interface IERC721Reclaimable {
      */
     event OwnershipClaimed(address indexed titleOwner, address indexed assetOwner, uint256 tokenId);
 
+    function titleTransferFee() external view returns (uint256);
+
     /**
      * As the title owner, exercise your right to reclaim ownership of the asset.
      */
@@ -35,7 +37,7 @@ interface IERC721Reclaimable {
      * The title owner, title approved operator, and all title approved operator are authorized to execute a title transfer
      * The exchange is responsible for enforcing applicable royalty fees.
      */
-    function titleTransferFrom(address to, address from, uint256 tokenId) external;
+    function titleTransferFrom(address to, address from, uint256 tokenId) external payable;
 
     /**
      * Title owner of ae asset
@@ -58,5 +60,6 @@ interface IERC721Reclaimable {
 
     error NotTitleOwner(address _address);
     error NotTitleOwnerOrTitleOperator(address _address);
-    error TitleTransferFromInvalidTitleOwner(address to, uint256 tokenId);
+    error TitleTransferFromInvalidTitleOwner(address to, address from, uint256 tokenId);
+    error InsufficientTitleTransferFee(address to, address from, uint256 tokenId, uint256 amount);
 }

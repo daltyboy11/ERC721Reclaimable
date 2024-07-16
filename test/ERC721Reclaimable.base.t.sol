@@ -9,10 +9,11 @@ contract ERC721ReclaimableMintable is ERC721Reclaimable {
     constructor(
         string memory name,
         string memory symbol,
+        uint256 titleTransferFee,
         address royaltyBeneficiary,
         uint96 royaltyBps,
         address minter
-    ) ERC721Reclaimable(name, symbol, royaltyBeneficiary, royaltyBps) {
+    ) ERC721Reclaimable(name, symbol, titleTransferFee, royaltyBeneficiary, royaltyBps) {
         for (uint256 i = 0; i < 10; i++) {
             mint(minter, i);
         }
@@ -26,6 +27,7 @@ contract ERC721ReclaimableBaseTest is Test, IERC721Errors {
         nft = new ERC721ReclaimableMintable(
             "ReclaimableTestNft",
             "RTN",
+            1 ether,
             address(this),
             200,
             address(this)
