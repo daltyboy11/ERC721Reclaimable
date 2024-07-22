@@ -22,15 +22,16 @@ contract ERC721ReclaimableMintable is ERC721Reclaimable {
 
 contract ERC721ReclaimableBaseTest is Test, IERC721Errors {
     ERC721ReclaimableMintable internal nft;
+    address constant ROYALTY_BENEFICIARY = address(9248093483458);
 
     function setUp() public {
-        nft = new ERC721ReclaimableMintable(
-            "ReclaimableTestNft",
-            "RTN",
-            1 ether,
-            address(this),
-            200,
-            address(this)
-        );
+        nft = new ERC721ReclaimableMintable({
+            name: "ReclaimableTestNft",
+            symbol: "RTN",
+            titleTransferFee: 1 ether,
+            royaltyBeneficiary: ROYALTY_BENEFICIARY,
+            royaltyBps: 200,
+            minter: address(this)
+        });
     }
 }

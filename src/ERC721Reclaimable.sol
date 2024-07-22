@@ -36,14 +36,13 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721Royalty {
     }
 
     function titleTransferFrom(
-        address to,
         address from,
+        address to,
         uint256 tokenId
     ) public override payable onlyTitleOwnerOrTitleOperator(tokenId) {
-        if (to != _titleOwners[tokenId]) revert TitleTransferFromInvalidTitleOwner(to, from, tokenId);
-        if (msg.value < _titleTransferFee) revert InsufficientTitleTransferFee(to, from, tokenId, msg.value);
+        if (msg.value < _titleTransferFee) revert InsufficientTitleTransferFee(from, to, tokenId, msg.value);
 
-        _titleOwners[tokenId] = from;
+        _titleOwners[tokenId] = to;
 
         // Clear approval
         delete _tokenTitleApprovals[tokenId];
@@ -53,7 +52,7 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721Royalty {
         (bool success, ) = receiver.call{value: msg.value}("");
         require(success, "Transfer failed");
 
-        emit TitleTransfer(to, from, tokenId);
+        emit TitleTransfer(from, to, tokenId);
     }
 
     function titleOwnerOf(uint256 tokenId) public view override returns (address) {

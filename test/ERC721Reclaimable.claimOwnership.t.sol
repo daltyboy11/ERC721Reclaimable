@@ -18,7 +18,12 @@ contract ERC721ReclaimableClaimOwnershipTest is ERC721ReclaimableBaseTest {
         nft.transferFrom(address(this), nonTitleOwner, 0);
         assertEq(nft.ownerOf(0), nonTitleOwner);
         vm.prank(nonTitleOwner);
-        vm.expectRevert(abi.encodeWithSelector(IERC721Reclaimable.NotTitleOwnerOrTitleOperator.selector, nonTitleOwner));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC721Reclaimable.NotTitleOwnerOrTitleOperator.selector,
+                nonTitleOwner
+            )
+        );
         nft.claimOwnership(0);
     }
 

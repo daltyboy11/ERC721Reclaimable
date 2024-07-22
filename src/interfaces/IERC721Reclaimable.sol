@@ -37,7 +37,7 @@ interface IERC721Reclaimable {
      * The title owner, title approved operator, and all title approved operator are authorized to execute a title transfer
      * The exchange is responsible for enforcing applicable royalty fees.
      */
-    function titleTransferFrom(address to, address from, uint256 tokenId) external payable;
+    function titleTransferFrom(address from, address to, uint256 tokenId) external payable;
 
     /**
      * Title owner of ae asset
@@ -60,6 +60,6 @@ interface IERC721Reclaimable {
 
     error NotTitleOwner(address _address);
     error NotTitleOwnerOrTitleOperator(address _address);
-    error TitleTransferFromInvalidTitleOwner(address to, address from, uint256 tokenId);
-    error InsufficientTitleTransferFee(address to, address from, uint256 tokenId, uint256 amount);
+    error TitleTransferFromInvalidTitleOwner(address from, address to, uint256 tokenId);
+    error InsufficientTitleTransferFee(address from, address to, uint256 tokenId, uint256 amount);
 }
