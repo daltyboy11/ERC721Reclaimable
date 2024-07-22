@@ -1,27 +1,26 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-import {ERC721Royalty} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {IERC721Reclaimable} from "./interfaces/IERC721Reclaimable.sol";
 
-contract ERC721Reclaimable is IERC721Reclaimable, ERC721Royalty {
+contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
     mapping(uint256 => address) private _titleOwners;
     mapping(uint256 tokenId => address) private _tokenTitleApprovals;
     mapping(address titleOwner => mapping(address titleOperator => bool)) private _titleOperatorApprovals;
 
     uint256 private immutable _titleTransferFee;
+    address private immutable _titleFeeRecipient;
 
     constructor(
         string memory name,
         string memory symbol,
         uint256 __titleTransferFee,
-        address royaltyBeneficiary,
-        uint96 royaltyBps
+        address __titleFeeRecipient
     ) ERC721(name, symbol) {
-        _setDefaultRoyalty(royaltyBeneficiary, royaltyBps);
         _titleTransferFee = __titleTransferFee;
+        _titleFeeRecipient = __titleFeeRecipient;
     }
 
     function titleTransferFee() external override view returns (uint256) {
@@ -47,9 +46,8 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721Royalty {
         // Clear approval
         delete _tokenTitleApprovals[tokenId];
 
-        (address receiver,) = this.royaltyInfo(tokenId, 0);
         // Transfer the title transfer fee to the receiver
-        (bool success, ) = receiver.call{value: msg.value}("");
+        (bool success, ) = _titleFeeRecipient.call{value: msg.value}("");
         require(success, "Transfer failed");
 
         emit TitleTransfer(from, to, tokenId);

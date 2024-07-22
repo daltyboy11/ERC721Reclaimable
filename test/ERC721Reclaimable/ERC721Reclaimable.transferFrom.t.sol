@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {ERC721ReclaimableBaseTest} from "./ERC721Reclaimable.base.t.sol";
-import {IERC721Reclaimable} from "../src/interfaces/IERC721Reclaimable.sol";
+import {IERC721Reclaimable} from "../../src/interfaces/IERC721Reclaimable.sol";
 
 contract ERC721ReclaimableTransferFromTest is ERC721ReclaimableBaseTest {  
     function testTransferFromNotCallableByTitleOwnerIfTheyDontOwnIt() public {
