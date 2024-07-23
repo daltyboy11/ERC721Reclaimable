@@ -10,7 +10,8 @@ contract TitleExchange {
         uint256 indexed tokenId,
         address indexed titleOwner,
         uint256 titleTransferFee,
-        uint256 salePrice
+        uint256 salePrice,
+        uint256 validUntil
     );
 
     event TitlePurchased(
@@ -64,7 +65,8 @@ contract TitleExchange {
             tokenId: tokenId,
             titleOwner: nft.titleOwnerOf(tokenId),
             titleTransferFee: nft.titleTransferFee(),
-            salePrice: salePrice
+            salePrice: salePrice,
+            validUntil: validUntil
         });
     }
 

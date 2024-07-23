@@ -139,4 +139,28 @@ contract TitleExchangeSubmitAskTest is TitleExchangeBaseTest {
         assertEq(_titleTransferFee, nft.titleTransferFee());
         assertEq(_validUntil, validUntil2);
     }
+
+    function testSubmitAskEmitsAnEvent(
+        uint tokenId,
+        uint salePrice,
+        uint validUntil
+    ) public {
+        tokenId = bound(tokenId, 0, 9);
+        validUntil = bound(validUntil, block.timestamp + 1, type(uint).max);
+        vm.expectEmit(true, true, true, true);
+        emit TitleExchange.AskSubmitted({
+            nft: nft,
+            tokenId: tokenId,
+            titleOwner: address(this),
+            titleTransferFee: nft.titleTransferFee(),
+            salePrice: salePrice,
+            validUntil: validUntil
+        });
+        exchange.submitAsk({
+            nft: nft,
+            tokenId: tokenId,
+            salePrice: salePrice,
+            validUntil: validUntil
+        }); 
+    }
 }
