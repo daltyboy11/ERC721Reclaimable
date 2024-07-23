@@ -23,56 +23,79 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
         _titleFeeRecipient = __titleFeeRecipient;
     }
 
+    /// @inheritdoc IERC721Reclaimable
     function titleTransferFee() external override view returns (uint256) {
         return _titleTransferFee;
     }
 
-    function claimOwnership(uint256 tokenId) public override onlyTitleOwnerOrTitleOperator(tokenId) {
-        address titleOwner = _titleOwners[tokenId];
-        address assetOwner = this.ownerOf(tokenId);
-        _transfer(assetOwner, titleOwner, tokenId);
-        emit OwnershipClaimed(titleOwner, assetOwner, tokenId);
+    /// @inheritdoc IERC721Reclaimable
+    function titleTransferFeeRecipient() external override view returns (address) {
+        return _titleFeeRecipient;
     }
 
-    function titleTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public override payable onlyTitleOwnerOrTitleOperator(tokenId) {
-        if (msg.value < _titleTransferFee) revert InsufficientTitleTransferFee(from, to, tokenId, msg.value);
+    /// @inheritdoc IERC721Reclaimable
+    function claimOwnership(uint256 _tokenId)
+        public
+        payable
+        override
+        onlyTitleOwnerOrTitleOperator(_tokenId)
+    {
+        address titleOwner = _titleOwners[_tokenId];
+        address assetOwner = this.ownerOf(_tokenId);
+        _transfer(assetOwner, titleOwner, _tokenId);
+        emit OwnershipClaimed(titleOwner, assetOwner, _tokenId);
+    }
 
-        _titleOwners[tokenId] = to;
+    /// @inheritdoc IERC721Reclaimable
+    function titleTransferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId
+    ) public override payable onlyTitleOwnerOrTitleOperator(_tokenId) {
+        if (msg.value < _titleTransferFee) revert InsufficientTitleTransferFee(_from, _to, _tokenId, msg.value);
+
+        _titleOwners[_tokenId] = _to;
 
         // Clear approval
-        delete _tokenTitleApprovals[tokenId];
+        delete _tokenTitleApprovals[_tokenId];
 
         // Transfer the title transfer fee to the receiver
         (bool success, ) = _titleFeeRecipient.call{value: msg.value}("");
         require(success, "Transfer failed");
 
-        emit TitleTransfer(from, to, tokenId);
+        emit TitleTransfer(_from, _to, _tokenId);
     }
 
-    function titleOwnerOf(uint256 tokenId) public view override returns (address) {
-        return _titleOwners[tokenId];
+    /// @inheritdoc IERC721Reclaimable
+    function titleOwnerOf(uint256 _tokenId) public view override returns (address) {
+        return _titleOwners[_tokenId];
     }
 
-    function titleApprove(address to, uint256 tokenId) public override onlyTitleOwner(tokenId) {
-        _tokenTitleApprovals[tokenId] = to;
-        emit TitleApproval(msg.sender, to, tokenId);
+    /// @inheritdoc IERC721Reclaimable
+    function titleApprove(address _to, uint256 _tokenId) public payable override onlyTitleOwner(_tokenId) {
+        _tokenTitleApprovals[_tokenId] = _to;
+        emit TitleApproval(msg.sender, _to, _tokenId);
     }
 
-    function getTitleApproved(uint256 tokenId) public view override returns (address) {
-        return _tokenTitleApprovals[tokenId];
+    /// @inheritdoc IERC721Reclaimable
+    function getTitleApproved(uint256 _tokenId) public view override returns (address) {
+        return _tokenTitleApprovals[_tokenId];
     }
 
-    function setTitleApprovalForAll(address operator, bool approved) public override {
-        _titleOperatorApprovals[msg.sender][operator] = approved;
-        emit TitleApprovalForAll(msg.sender, operator, approved);
+    /// @inheritdoc IERC721Reclaimable
+    function setTitleApprovalForAll(address _operator, bool _approved) public override {
+        _titleOperatorApprovals[msg.sender][_operator] = _approved;
+        emit TitleApprovalForAll(msg.sender, _operator, _approved);
     }
 
-    function isTitleApprovedForAll(address titleOwner, address titleOperator) public view override returns (bool) {
-        return _titleOperatorApprovals[titleOwner][titleOperator];
+    /// @inheritdoc IERC721Reclaimable
+    function isTitleApprovedForAll(address _titleOwner, address _titleOperator) public view override returns (bool) {
+        return _titleOperatorApprovals[_titleOwner][_titleOperator];
+    }
+
+    /// @inheritdoc IERC721Reclaimable
+    function titleBalanceOf(address _titleOwner) public view override returns (uint256) {
+        require(false, "Implement Me!");
     }
 
     function mint(address to, uint256 tokenId) internal {

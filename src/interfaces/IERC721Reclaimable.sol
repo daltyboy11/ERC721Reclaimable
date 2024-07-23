@@ -1,62 +1,85 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
+/// @title An NFT interface that supports fixed title transfer fees, and the right of the title owner
+///  to reclaim token ownership at any time. Inspired by this a16z crypto post on NFT royalties:
+///  https://a16zcrypto.com/posts/article/how-nft-royalties-work/
+/// @author Dalton G. Sweeney
 interface IERC721Reclaimable {
-    /**
-     * @dev Emitted when `tokenId`'s title is transferred from `from` to `to`.
-     */
-    event TitleTransfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    /// @dev This emits when title of an NFT changes by any mechanism. This event emits when NFTs are
+    ///  created (`from` == 0) and destroyed (`to` == 0). At the time of any title transfer, the title
+    ///  approved address for that NFT (if any) is reset to none.
+    event TitleTransfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
 
-    /**
-     * @dev Emitted when `titleOwner` enables `approved` to manage the `tokenId`'s title.
-     */
-    event TitleApproval(address indexed titleOwner, address indexed approved, uint256 indexed tokenId);
+    /// @dev This emits when the title approved address for an NFT is changed or reaffirmed. The zero
+    ///  address indicates there is no approved address. When a TitleTransfer event emits, this also
+    ///  indicates that the title approved address for that NFT (if any) is reset to none.
+    event TitleApproval(address indexed _titleOwner, address indexed _approved, uint256 indexed _tokenId);
 
-    /**
-     * @dev Emitted when `titleOwner` enables or disables (`approved`) `titleOperator` to manage all of its titles.
-     */
-    event TitleApprovalForAll(address indexed titleOwner, address indexed titleOperator, bool approved);
+    /// @dev This emits when an title operator is enabled or disabled for a title owner.
+    ///  The title operator can manage the titles for all NFTs of the title owner
+    event TitleApprovalForAll(address indexed _titleOwner, address indexed _titleOperator, bool _approved);
 
-    /**
-     * @dev Emitted when titleOwner exercises their right to reclaim the asset
-     * @param titleOwner The title owner claiming ownership
-     * @param assetOwner The asset owner from which the asset was claimed
-     * @param tokenId The asset claimed
-     */
-    event OwnershipClaimed(address indexed titleOwner, address indexed assetOwner, uint256 tokenId);
+    /// @dev This emits when ownership of an NFT is claimed by a title owner or title operator
+    event OwnershipClaimed(address indexed _titleOwner, address indexed _assetOwner, uint256 _tokenId);
 
+    /// @notice The fixed fee required for transferring an NFT's title 
     function titleTransferFee() external view returns (uint256);
 
-    /**
-     * As the title owner, exercise your right to reclaim ownership of the asset.
-     */
-    function claimOwnership(uint256 tokenId) external;
+    /// @notice The recipient of the title transfer fee when a transfer is executed
+    function titleTransferFeeRecipient() external view returns (address);
 
-    /**
-     * Transfer title.
-     * The title owner, title approved operator, and all title approved operator are authorized to execute a title transfer
-     * The exchange is responsible for enforcing applicable royalty fees.
-     */
-    function titleTransferFrom(address from, address to, uint256 tokenId) external payable;
+    /// @notice Count all NFT titles  assigned to an owner
+    /// @dev NFTs assigned to the zero address are considered invalid, and this
+    ///  function throws for queries about the zero address.
+    /// @param _titleOwner An address for whom to query the balance
+    /// @return The number of NFT titles owned by `_titleOwner`, possibly zero
+    function titleBalanceOf(address _titleOwner) external view returns (uint256);
 
-    /**
-     * Title owner of ae asset
-     */
-    function titleOwnerOf(uint256 tokenId) external view returns (address);
+    /// @notice Find the title owner of an NFT
+    /// @param _tokenId The identifier for an NFT
+    /// @return The address of the title owner of the NFT
+    function titleOwnerOf(uint256 _tokenId) external view returns (address);
 
-    /**
-     * As the title owner, delegate title management to another address
-     * 
-     * @param to address delegated to
-     * @param tokenId asset whose title is being delegated
-     */
-    function titleApprove(address to, uint256 tokenId) external;
+    /// @notice Claim ownership of an NFT
+    /// dev Throws unless `msg.sender` is the title owner
+    /// @dev Emits a ERC721.Transfer event
+    /// @param _tokenId The NFT to claim ownership for
+    function claimOwnership(uint256 _tokenId) external payable; 
 
-    function getTitleApproved(uint256 tokenId) external view returns (address);
+    /// @notice Transfer the NFT's title -- THE CALLER IS RESPONSIBLE TO CONFIRM THAT `to` IS
+    ///  CAPABLE OF RECEIVING NFTS OR ELSE THEY MAY BE PERMANENTLY LOST
+    /// @dev Throws unless `msg.sender` is the title owner, an authorized title operator, or the
+    ///  title-approved address for this NFT.
+    /// @dev Throws unless `msg.value` is at least the titleTransferFee
+    /// @param _from The current title owner of an NFT
+    /// @param _to The new title owner
+    /// @param _tokenId The NFT whose title to transfer
+    function titleTransferFrom(address _from, address _to, uint256 _tokenId) external payable; 
 
-    function setTitleApprovalForAll(address operator, bool approved) external;
+    /// @notice Set or reaffirm the approved address for an NFT's title.
+    /// @dev Throws unless `msg.sender` is the current NFT title owner, or an authorized title
+    ///  operator of the current owner
+    /// @param _approved The new approved NFT title controller
+    /// @param _tokenId The NFT to approve
+    function titleApprove(address _approved, uint256 _tokenId) external payable;
 
-    function isTitleApprovedForAll(address titleOwner, address titleOperator) external view returns (bool);
+    /// @notice Enable or disable title approval for a third party ("titleOperator") to manage
+    ///  titles for all of `msg.sender`'s assets
+    /// @param _titleOperator Address to add to the set of authorized title operators
+    /// @param _approved True if the title operator is approved, false to revoke approval
+    function setTitleApprovalForAll(address _titleOperator, bool _approved) external;
+
+    /// @notice Get the approved title address for a single NFT
+    /// @param _tokenId  The NFT to find the approved title address for
+    /// @return The approved address for this NFT, or the zero address if there is none
+    function getTitleApproved(uint256 _tokenId) external view returns (address);
+
+    /// @notice Query if an address is an authorized titleOperator for another address
+    /// @param _titleOwner The address that owns the NFT's title
+    /// @param _titleOperator The adddress that acts on behalf of the title owner
+    /// @return True if `titleOperator` is an approved operator for `titleOwner`, false otherwise
+    function isTitleApprovedForAll(address _titleOwner, address _titleOperator) external view returns (bool);
 
     error NotTitleOwner(address _address);
     error NotTitleOwnerOrTitleOperator(uint256 tokenId, address _address);
