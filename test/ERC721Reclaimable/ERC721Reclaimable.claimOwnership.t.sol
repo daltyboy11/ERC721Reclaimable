@@ -59,4 +59,18 @@ contract ERC721ReclaimableClaimOwnershipTest is ERC721ReclaimableBaseTest {
         nft.claimOwnership(1);
         assertEq(nft.ownerOf(1), address(this));
     }
+
+    function testClaimOwnershipEmitsAnEvent(address assetOwner) public {
+        vm.assume(assetOwner != address(this));
+        nft.transferFrom(address(this), assetOwner, 0);
+
+        vm.expectEmit(true, true, true, true);
+        emit IERC721Reclaimable.OwnershipClaim({
+            _titleOwner: address(this),
+            _assetOwner: assetOwner,
+            _tokenId: 0
+        });
+
+        nft.claimOwnership(0);
+    }
 }

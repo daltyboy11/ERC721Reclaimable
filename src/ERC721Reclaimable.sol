@@ -43,7 +43,7 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
         address titleOwner = _titleOwners[_tokenId];
         address assetOwner = this.ownerOf(_tokenId);
         _transfer(assetOwner, titleOwner, _tokenId);
-        emit OwnershipClaimed(titleOwner, assetOwner, _tokenId);
+        emit OwnershipClaim(titleOwner, assetOwner, _tokenId);
     }
 
     /// @inheritdoc IERC721Reclaimable

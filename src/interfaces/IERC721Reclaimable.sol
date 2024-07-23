@@ -21,7 +21,7 @@ interface IERC721Reclaimable {
     event TitleApprovalForAll(address indexed _titleOwner, address indexed _titleOperator, bool _approved);
 
     /// @dev This emits when ownership of an NFT is claimed by a title owner or title operator
-    event OwnershipClaimed(address indexed _titleOwner, address indexed _assetOwner, uint256 _tokenId);
+    event OwnershipClaim(address indexed _titleOwner, address indexed _assetOwner, uint256 indexed _tokenId);
 
     /// @notice The fixed fee required for transferring an NFT's title 
     function titleTransferFee() external view returns (uint256);
