@@ -45,6 +45,13 @@ contract ERC721ReclaimableTitleTransferFromTest is ERC721ReclaimableBaseTest {
         assertEq(nft.titleOwnerOf(9), address(1));
     }
 
+    function testTitleTransferFromTransfersTheTitleFee() public {
+        uint balanceBefore = TITLE_FEE_RECIPIENT.balance;
+        executeTitleTransfer(address(this), address(1), 9, nft.titleTransferFee());
+        uint balanceAfter = TITLE_FEE_RECIPIENT.balance;
+        assertEq(balanceAfter - balanceBefore, nft.titleTransferFee());
+    }
+
     function testTitleTransferFromDoesNotChangeAssetOwnership() public {
         executeTitleTransfer(address(this), address(1), 3, nft.titleTransferFee());
         assertEq(nft.ownerOf(3), address(this));

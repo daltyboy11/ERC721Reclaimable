@@ -2,12 +2,14 @@
 pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
-import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
-import {ERC721ReclaimableMintable} from "../ERC721ReclaimableMintable.sol";
 
-contract ERC721ReclaimableBaseTest is Test, IERC721Errors {
-    ERC721ReclaimableMintable internal nft;
+import {ERC721ReclaimableMintable} from "../ERC721ReclaimableMintable.sol";
+import {TitleExchange} from "../../src/TitleExchange.sol";
+
+contract TitleExchangeBaseTest is Test {
     address constant TITLE_FEE_RECIPIENT = address(9248093483458);
+    ERC721ReclaimableMintable nft;
+    TitleExchange exchange;
 
     function setUp() public {
         nft = new ERC721ReclaimableMintable({
@@ -17,5 +19,6 @@ contract ERC721ReclaimableBaseTest is Test, IERC721Errors {
             titleFeeRecipient: TITLE_FEE_RECIPIENT,
             minter: address(this)
         });
+        exchange = new TitleExchange();
     }
 }
