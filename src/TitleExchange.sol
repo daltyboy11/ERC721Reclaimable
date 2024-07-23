@@ -21,6 +21,13 @@ contract TitleExchange {
         uint256 salePrice
     );
 
+    error InvalidValidUntil();
+    error NotTitleOwnerOrTitleOperator(
+        ERC721Reclaimable nft,
+        uint256 tokenId,
+        address _address
+    );
+
     struct Ask {
         uint256 tokenId;
         uint256 salePrice;
@@ -29,15 +36,21 @@ contract TitleExchange {
         uint256 validUntil;
     }
 
-    mapping(ERC721Reclaimable nft => mapping(uint256 tokenId => Ask)) asks;
+    mapping(ERC721Reclaimable nft => mapping(uint256 tokenId => Ask)) public asks;
 
     /**
      * Allow the title owner to submit an Ask for a title transfer
      */
-    function submitAsk(ERC721Reclaimable nft, uint256 tokenId, uint256 salePrice, uint256 validUntil) public {
-        require(validUntil > block.timestamp, "Invalid validUntil timestamp");
-        require(salePrice > 0, "Cannot sell for 0");
-        require(msg.sender == nft.titleOwnerOf(tokenId), "Not title owner");
+    function submitAsk(
+        ERC721Reclaimable nft,
+        uint256 tokenId,
+        uint256 salePrice,
+        uint256 validUntil
+    ) public onlyTitleOwnerOrTitleOperator(nft, tokenId) {
+        if (validUntil <= block.timestamp) {
+            revert InvalidValidUntil();
+        }
+
         asks[nft][tokenId] = Ask({
             tokenId: tokenId,
             salePrice: salePrice,
@@ -45,6 +58,7 @@ contract TitleExchange {
             titleTransferFee: nft.titleTransferFee(),
             validUntil: validUntil
         });
+
         emit AskSubmitted({
             nft: nft,
             tokenId: tokenId,
@@ -74,5 +88,14 @@ contract TitleExchange {
             titleTransferFee: ask.titleTransferFee,
             salePrice: ask.salePrice
         });
+    }
+
+    modifier onlyTitleOwnerOrTitleOperator(ERC721Reclaimable nft, uint256 tokenId) {
+        address titleOwner = nft.titleOwnerOf(tokenId);
+        bool isTitleOwner = titleOwner == msg.sender;
+        bool isApproved = nft.getTitleApproved(tokenId) == msg.sender;
+        bool isApprovedForAll = nft.isTitleApprovedForAll(titleOwner, msg.sender);
+        if (!isApproved && !isTitleOwner && !isApprovedForAll) revert NotTitleOwnerOrTitleOperator(nft, tokenId, msg.sender);
+        _;
     }
 }

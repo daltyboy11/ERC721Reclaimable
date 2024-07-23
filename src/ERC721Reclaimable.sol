@@ -97,7 +97,7 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
         bool isTitleOwner = titleOwner == msg.sender;
         bool isApproved = this.getTitleApproved(tokenId) == msg.sender;
         bool isApprovedForAll = this.isTitleApprovedForAll(titleOwner, msg.sender);
-        if (!isApproved && !isTitleOwner && !isApprovedForAll) revert NotTitleOwnerOrTitleOperator(msg.sender);
+        if (!isApproved && !isTitleOwner && !isApprovedForAll) revert NotTitleOwnerOrTitleOperator(tokenId, msg.sender);
         _;
     }
 }
