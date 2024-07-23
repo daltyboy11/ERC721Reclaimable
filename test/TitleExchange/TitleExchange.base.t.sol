@@ -21,4 +21,6 @@ contract TitleExchangeBaseTest is Test {
         });
         exchange = new TitleExchange();
     }
+
+    receive() external payable {}
 }

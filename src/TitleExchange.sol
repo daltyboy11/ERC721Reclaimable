@@ -23,10 +23,22 @@ contract TitleExchange {
     );
 
     error InvalidValidUntil();
+
     error NotTitleOwnerOrTitleOperator(
         ERC721Reclaimable nft,
         uint256 tokenId,
         address _address
+    );
+
+    error AskExpired(ERC721Reclaimable nft, uint256 tokenId, uint256 validUntil);
+
+    error InsufficientFunds(ERC721Reclaimable nft, uint256 tokenId, uint256 totalCost);
+
+    error TitleOwnerChanged(
+        ERC721Reclaimable nft,
+        uint256 tokenId,
+        address newTitleOwner,
+        address titleOwnerAtTimeOfAsk
     );
 
     struct Ask {
@@ -72,16 +84,27 @@ contract TitleExchange {
 
     function purchaseTitle(ERC721Reclaimable nft, uint256 tokenId) public payable {
         Ask memory ask = asks[nft][tokenId];
-        require(block.timestamp <= ask.validUntil, "Ask expired");
-        require(msg.value >= ask.salePrice + ask.titleTransferFee, "Insufficient Funds");
+
+        if (block.timestamp > ask.validUntil) {
+            revert AskExpired(nft, tokenId, ask.validUntil);
+        }
+
+        uint totalCost = ask.salePrice + ask.titleTransferFee;
+        if (msg.value < totalCost) {
+            revert InsufficientFunds(nft, tokenId, totalCost);
+        }
+
+        address titleOwner = nft.titleOwnerOf(tokenId);
+        if (ask.titleOwner != titleOwner) {
+            revert TitleOwnerChanged(nft, tokenId, titleOwner, ask.titleOwner);
+        }
 
         delete asks[nft][tokenId];
 
-        address titleOwner = nft.titleOwnerOf(tokenId);
         nft.titleTransferFrom{ value: ask.titleTransferFee }(titleOwner, msg.sender, tokenId);
 
         // Pay the seller
-        require(payable(titleOwner).send(ask.salePrice), "Failed to transfer funds to seller");
+        payable(titleOwner).transfer(ask.salePrice);
 
         emit TitlePurchased({
             nft: nft,
