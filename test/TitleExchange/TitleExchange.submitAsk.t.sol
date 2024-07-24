@@ -20,7 +20,7 @@ contract TitleExchangeSubmitAskTest is TitleExchangeBaseTest {
     }
 
     function testNonTitleOwnerNonOperatorReverts(address fraudster) public {
-        vm.assume(fraudster != address(this));
+        vm.assume(fraudster != address(this) && fraudster != address(0));
         vm.expectRevert(
             abi.encodeWithSelector(
                 TitleExchange.NotTitleOwnerOrTitleOperator.selector,
