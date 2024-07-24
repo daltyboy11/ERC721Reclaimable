@@ -79,11 +79,5 @@ interface IERC721Reclaimable {
     /// @param _titleOwner The address that owns the NFT's title
     /// @param _titleOperator The adddress that acts on behalf of the title owner
     /// @return True if `titleOperator` is an approved operator for `titleOwner`, false otherwise
-    function isTitleApprovedForAll(address _titleOwner, address _titleOperator) external view returns (bool);
-
-    error NotTitleOwner(address _address);
-    error NotTitleOwnerOrApprovedOrOperator(uint256 _tokenId, address _address);
-    error InvalidTitleApprover(address _address);
-    error TitleTransferFromInvalidTitleOwner(address _from, address _to, uint256 _tokenId);
-    error InsufficientTitleTransferFee(address _from, address _to, uint256 _tokenId, uint256 _amount);
+    function isTitleApprovedForAll(address _titleOwner, address _titleOperator) external view returns (bool); 
 }

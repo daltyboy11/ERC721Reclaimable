@@ -137,4 +137,10 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
         if (!isApproved && !isTitleOwner && !isApprovedForAll) revert NotTitleOwnerOrApprovedOrOperator(tokenId, msg.sender);
         _;
     }
+
+    error NotTitleOwner(address _address);
+    error NotTitleOwnerOrApprovedOrOperator(uint256 _tokenId, address _address);
+    error InvalidTitleApprover(address _address);
+    error TitleTransferFromInvalidTitleOwner(address _from, address _to, uint256 _tokenId);
+    error InsufficientTitleTransferFee(address _from, address _to, uint256 _tokenId, uint256 _amount);
 }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import {ERC721ReclaimableBaseTest} from "./ERC721Reclaimable.base.t.sol";
 import {IERC721Reclaimable} from "../../src/interfaces/IERC721Reclaimable.sol";
+import {ERC721Reclaimable} from "../../src/ERC721Reclaimable.sol";
 
 contract ERC721ReclaimableClaimOwnershipTest is ERC721ReclaimableBaseTest {
     function testTitleOwnerCanClaimOwnership(address assetOwner) public {
@@ -20,7 +21,7 @@ contract ERC721ReclaimableClaimOwnershipTest is ERC721ReclaimableBaseTest {
         vm.prank(nonTitleOwner);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IERC721Reclaimable.NotTitleOwnerOrApprovedOrOperator.selector,
+                ERC721Reclaimable.NotTitleOwnerOrApprovedOrOperator.selector,
                 0,
                 nonTitleOwner
             )

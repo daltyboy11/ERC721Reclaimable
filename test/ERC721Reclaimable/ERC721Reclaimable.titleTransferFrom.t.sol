@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import {ERC721ReclaimableBaseTest} from "./ERC721Reclaimable.base.t.sol";
 import {IERC721Reclaimable} from "../../src/interfaces/IERC721Reclaimable.sol";
+import {ERC721Reclaimable} from "../../src/ERC721Reclaimable.sol";
 
 contract ERC721ReclaimableTitleTransferFromTest is ERC721ReclaimableBaseTest {
     function executeTitleTransfer(
@@ -21,7 +22,7 @@ contract ERC721ReclaimableTitleTransferFromTest is ERC721ReclaimableBaseTest {
         amount = bound(amount, 0, nft.titleTransferFee() - 1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IERC721Reclaimable.InsufficientTitleTransferFee.selector,
+                ERC721Reclaimable.InsufficientTitleTransferFee.selector,
                 address(this),
                 address(1),
                 1,
