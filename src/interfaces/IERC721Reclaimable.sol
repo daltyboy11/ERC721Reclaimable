@@ -6,7 +6,6 @@ pragma solidity ^0.8.24;
 /// and title ownership, allowing for a reclaim mechanism and fixed transfer fees. Inspired by
 /// the a16zcrypto article https://a16zcrypto.com/posts/article/how-nft-royalties-work/
 /// @author Dalton G. Sweeney
-///
 /// @dev The ownership model can be visualized as follows:
 ///
 ///      +----------------+        +----------------+
