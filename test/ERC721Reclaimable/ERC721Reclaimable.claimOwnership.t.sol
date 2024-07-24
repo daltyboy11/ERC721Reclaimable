@@ -6,7 +6,7 @@ import {IERC721Reclaimable} from "../../src/interfaces/IERC721Reclaimable.sol";
 
 contract ERC721ReclaimableClaimOwnershipTest is ERC721ReclaimableBaseTest {
     function testTitleOwnerCanClaimOwnership(address assetOwner) public {
-        vm.assume(assetOwner != address(this));
+        vm.assume(assetOwner != address(this) && assetOwner != address(0));
         nft.transferFrom(address(this), assetOwner, 0);
         assertEq(nft.ownerOf(0), assetOwner);
         nft.claimOwnership(0);
@@ -61,7 +61,7 @@ contract ERC721ReclaimableClaimOwnershipTest is ERC721ReclaimableBaseTest {
     }
 
     function testClaimOwnershipEmitsAnEvent(address assetOwner) public {
-        vm.assume(assetOwner != address(this));
+        vm.assume(assetOwner != address(this) && assetOwner != address(0));
         nft.transferFrom(address(this), assetOwner, 0);
 
         vm.expectEmit(true, true, true, true);
