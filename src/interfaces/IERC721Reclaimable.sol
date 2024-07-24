@@ -29,7 +29,7 @@ interface IERC721Reclaimable {
     /// @notice The recipient of the title transfer fee when a transfer is executed
     function titleTransferFeeRecipient() external view returns (address);
 
-    /// @notice Count all NFT titles  assigned to an owner
+    /// @notice Count all NFT titles assigned to an owner
     /// @dev NFTs assigned to the zero address are considered invalid, and this
     ///  function throws for queries about the zero address.
     /// @param _titleOwner An address for whom to query the balance
@@ -42,7 +42,7 @@ interface IERC721Reclaimable {
     function titleOwnerOf(uint256 _tokenId) external view returns (address);
 
     /// @notice Claim ownership of an NFT
-    /// dev Throws unless `msg.sender` is the title owner
+    /// @dev Throws unless `msg.sender` is the title owner
     /// @dev Emits a ERC721.Transfer event
     /// @param _tokenId The NFT to claim ownership for
     function claimOwnership(uint256 _tokenId) external payable; 
@@ -77,7 +77,7 @@ interface IERC721Reclaimable {
 
     /// @notice Query if an address is an authorized titleOperator for another address
     /// @param _titleOwner The address that owns the NFT's title
-    /// @param _titleOperator The adddress that acts on behalf of the title owner
+    /// @param _titleOperator The address that acts on behalf of the title owner
     /// @return True if `titleOperator` is an approved operator for `titleOwner`, false otherwise
     function isTitleApprovedForAll(address _titleOwner, address _titleOperator) external view returns (bool); 
 }
