@@ -1,10 +1,77 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-/// @title An NFT interface that supports fixed title transfer fees, and the right of the title owner
-///  to reclaim token ownership at any time. Inspired by this a16z crypto post on NFT royalties:
-///  https://a16zcrypto.com/posts/article/how-nft-royalties-work/
+/// @title IERC721Reclaimable: NFT interface with title ownership and reclaim rights
+/// @notice This interface extends the concept of NFT ownership to include both asset ownership
+/// and title ownership, allowing for a reclaim mechanism and fixed transfer fees. Inspired by
+/// the a16zcrypto article https://a16zcrypto.com/posts/article/how-nft-royalties-work/
 /// @author Dalton G. Sweeney
+///
+/// @dev The ownership model can be visualized as follows:
+///
+///      +----------------+        +----------------+
+///      |   Asset Owner  |        |   Title Owner  |
+///      |    (0xabc...)  |        |    (0x123...)  |
+///      +----------------+        +----------------+
+///              ^                         ^
+///              |                         |
+///              |        +--------+       |
+///              +--------|  NFT   |-------+
+///                       +--------+
+///
+/// Asset ownership = Standard ERC721 ownership
+/// Title ownership = Additional layer of ownership with reclaim rights
+///                   Transferring title requires paying a fixed fee
+///
+/// Key operations:
+///
+/// 1. Transfer title (does NOT transfer asset):
+///    +----------------+        +----------------+       +----------------+
+///    |   Asset Owner  |        |   Title Owner  |       |  Fee Recipient |
+///    |    (0xabc...)  |        |    (0x123...)  |       |    (0xfee...)  |
+///    +----------------+        +----------------+       +----------------+
+///            |                          |                        |
+///            |                          |  Fixed Fee             |
+///            |                          | +--------------------> |
+///            |                          |                        |
+///            |                          |                        |
+///            |                          v                        |
+///            |                 +----------------+                |
+///            |                 | New Title Owner|                |
+///            |                 |    (0x789...)  |                |
+///                              +----------------+
+///
+/// 2. Transfer asset (does NOT transfer title):
+///    +----------------+        +----------------+
+///    |   Asset Owner  |        |   Title Owner  |
+///    |    (0xabc...)  |        |    (0x123...)  |
+///    +----------------+        +----------------+
+///            |                          |
+///            v                          |
+///    +----------------+                 |
+///    | New Asset Owner|                 |
+///    |    (0xdef...)  |                 |
+///    +----------------+                 |
+///
+/// 3. Title owner reclaims asset:
+///    +----------------+        +----------------+
+///    |   Asset Owner  |        |   Title Owner  |
+///    |    (0xdef...)  |        |    (0x123...)  |
+///    +----------------+        +----------------+
+///            |                          |
+///            |                          |
+///            |         reclaim          |
+///            <--------------------------+
+///            |                          |
+///            v                          v
+///    +----------------+        +----------------+
+///    |  Asset & Title |        |   Title Owner  |
+///    |    (0x123...)  |        |    (0x123...)  |
+///    +----------------+        +----------------+
+///
+/// The title owner can reclaim the NFT at any time if the asset owner differs.
+/// This mechanism incentivizes paying the transfer fee (royalty) when transferring ownership,
+/// while allowing free transfers between personal wallets.
 interface IERC721Reclaimable {
     /// @dev This emits when title of an NFT changes by any mechanism. This event emits when NFTs are
     ///  created (`from` == 0) and destroyed (`to` == 0). At the time of any title transfer, the title
