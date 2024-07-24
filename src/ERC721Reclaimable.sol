@@ -7,6 +7,7 @@ import {IERC721Reclaimable} from "./interfaces/IERC721Reclaimable.sol";
 
 contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
     mapping(uint256 => address) private _titleOwners;
+    mapping(address => uint256) private _titleBalances;
     mapping(uint256 tokenId => address) private _tokenTitleApprovals;
     mapping(address titleOwner => mapping(address titleOperator => bool)) private _titleOperatorApprovals;
 
@@ -38,7 +39,7 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
         public
         payable
         override
-        onlyTitleOwnerOrTitleOperator(_tokenId)
+        onlyTitleOwnerOrOperatorOrApproved(_tokenId)
     {
         address titleOwner = _titleOwners[_tokenId];
         address assetOwner = this.ownerOf(_tokenId);
@@ -51,10 +52,17 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
         address _from,
         address _to,
         uint256 _tokenId
-    ) public override payable onlyTitleOwnerOrTitleOperator(_tokenId) {
-        if (msg.value < _titleTransferFee) revert InsufficientTitleTransferFee(_from, _to, _tokenId, msg.value);
+    ) public override payable onlyTitleOwnerOrOperatorOrApproved(_tokenId) {
+        if (_titleOwners[_tokenId] != _from) {
+            revert NotTitleOwner(_from);
+        }
+        if (msg.value < _titleTransferFee) {
+            revert InsufficientTitleTransferFee(_from, _to, _tokenId, msg.value);
+        }
 
         _titleOwners[_tokenId] = _to;
+        _titleBalances[_to] += 1;
+        _titleBalances[_from] -= 1;
 
         // Clear approval
         delete _tokenTitleApprovals[_tokenId];
@@ -72,7 +80,7 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
     }
 
     /// @inheritdoc IERC721Reclaimable
-    function titleApprove(address _to, uint256 _tokenId) public payable override onlyTitleOwner(_tokenId) {
+    function titleApprove(address _to, uint256 _tokenId) public payable override {
         _tokenTitleApprovals[_tokenId] = _to;
         emit TitleApproval(msg.sender, _to, _tokenId);
     }
@@ -95,7 +103,7 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
 
     /// @inheritdoc IERC721Reclaimable
     function titleBalanceOf(address _titleOwner) public view override returns (uint256) {
-        require(false, "Implement Me!");
+        return _titleBalances[_titleOwner];
     }
 
     function mint(address to, uint256 tokenId) internal {
@@ -103,24 +111,30 @@ contract ERC721Reclaimable is IERC721Reclaimable, ERC721 {
         _titleMint(to, tokenId);
     }
 
-    function _titleMint(address to, uint256 tokenId) internal {
-        require(to != address(0), "Cannot mint to 0 address");
-        require(_titleOwners[tokenId] == address(0), "Title already minted");
-        _titleOwners[tokenId] = to;
-        emit TitleTransfer(address(0), to, tokenId);
+    function _titleMint(address _to, uint256 _tokenId) internal {
+        require(_to != address(0), "Cannot mint to 0 address");
+        require(_titleOwners[_tokenId] == address(0), "Title already minted");
+        _titleOwners[_tokenId] = _to;
+        _titleBalances[_to] += 1;
+        emit TitleTransfer(address(0), _to, _tokenId);
     }
 
-    modifier onlyTitleOwner(uint256 tokenId) {
-        if (msg.sender != _titleOwners[tokenId]) revert NotTitleOwner(msg.sender);
+    modifier onlyTitleOwnerOrOperator(uint256 tokenId) {
+        address titleOwner = _titleOwners[tokenId];
+        bool isTitleOwner = titleOwner == msg.sender;
+        bool isApprovedForAll = this.isTitleApprovedForAll(titleOwner, msg.sender);
+        if (!isTitleOwner && !isApprovedForAll) {
+            revert InvalidTitleApprover(msg.sender);
+        }
         _;
     }
 
-    modifier onlyTitleOwnerOrTitleOperator(uint256 tokenId) {
+    modifier onlyTitleOwnerOrOperatorOrApproved(uint256 tokenId) {
         address titleOwner = _titleOwners[tokenId];
         bool isTitleOwner = titleOwner == msg.sender;
         bool isApproved = this.getTitleApproved(tokenId) == msg.sender;
         bool isApprovedForAll = this.isTitleApprovedForAll(titleOwner, msg.sender);
-        if (!isApproved && !isTitleOwner && !isApprovedForAll) revert NotTitleOwnerOrTitleOperator(tokenId, msg.sender);
+        if (!isApproved && !isTitleOwner && !isApprovedForAll) revert NotTitleOwnerOrApprovedOrOperator(tokenId, msg.sender);
         _;
     }
 }

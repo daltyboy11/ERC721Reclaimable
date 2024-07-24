@@ -82,7 +82,8 @@ interface IERC721Reclaimable {
     function isTitleApprovedForAll(address _titleOwner, address _titleOperator) external view returns (bool);
 
     error NotTitleOwner(address _address);
-    error NotTitleOwnerOrTitleOperator(uint256 tokenId, address _address);
-    error TitleTransferFromInvalidTitleOwner(address from, address to, uint256 tokenId);
-    error InsufficientTitleTransferFee(address from, address to, uint256 tokenId, uint256 amount);
+    error NotTitleOwnerOrApprovedOrOperator(uint256 _tokenId, address _address);
+    error InvalidTitleApprover(address _address);
+    error TitleTransferFromInvalidTitleOwner(address _from, address _to, uint256 _tokenId);
+    error InsufficientTitleTransferFee(address _from, address _to, uint256 _tokenId, uint256 _amount);
 }

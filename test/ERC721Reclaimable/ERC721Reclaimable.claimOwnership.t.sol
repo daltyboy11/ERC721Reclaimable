@@ -20,7 +20,7 @@ contract ERC721ReclaimableClaimOwnershipTest is ERC721ReclaimableBaseTest {
         vm.prank(nonTitleOwner);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IERC721Reclaimable.NotTitleOwnerOrTitleOperator.selector,
+                IERC721Reclaimable.NotTitleOwnerOrApprovedOrOperator.selector,
                 0,
                 nonTitleOwner
             )
